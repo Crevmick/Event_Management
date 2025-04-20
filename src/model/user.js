@@ -29,6 +29,12 @@ const UserSchema = new Schema({
         type: String,
         default: null  
     },
+    role: { 
+        type: String, 
+        enum: ['admin', 'event-organizer', 'attendee'], 
+        default: 'attendee' 
+    },
+    eventsOrganized: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }]  // Refers to events the user organizes
 }, {
     timestamps: true, // Automatically adds createdAt and updatedAt fields
 });

@@ -8,8 +8,8 @@ import bcrypt from 'bcryptjs';
 import createToken from '../../../util/createToken.js';
 const router = express.Router();
 
-router.post('/signup', async (req, res) => {
-    let { name, email, password, dateOfBirth } = req.body;
+router.post('/', async (req, res) => {
+    let { name, email, password, dateOfBirth} = req.body;
 
     name = name.trim();
     email = email.trim();
@@ -68,6 +68,7 @@ router.post('/signup', async (req, res) => {
             name,
             email,
             password: hashedPassword,
+            role: 'attendee',  // Default role
             dateOfBirth
         });
 
@@ -76,16 +77,17 @@ router.post('/signup', async (req, res) => {
          //  Create a JWT token after successful signup
          const token = await createToken({ userId: savedUser._id });
 
-         // Send the token and user data in response
-         return res.json({
-             status: "SUCCESS",
-             message: "Signup successful",
-             token, // sending the token
-             data: {
-                 id: savedUser._id,
-                 name: savedUser.name,
-                 email: savedUser.email,
-                 verified: savedUser.verified
+        // Send the token and user data in response
+        return res.json({
+            status: "SUCCESS",
+            message: "Signup successful",
+            token, // sending the token
+            data: {
+                id: savedUser._id,
+                name: savedUser.name,
+                email: savedUser.email,
+                verified: savedUser.verified,
+                role: savedUser.role  // Include the role in the response
              }
          });
     } catch (error) {

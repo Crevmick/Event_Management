@@ -15,8 +15,8 @@ const app = express();
 app.use(express.json()); // for parsing JSON body
 
 // Mount routes
-app.use('/api/signup', signupRoute);
-app.use('/api/signin', signinRoute);
+app.use('/api/auth/signup', signupRoute);
+app.use('/api/auth/signin', signinRoute);
 
 
 

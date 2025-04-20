@@ -9,7 +9,7 @@ import createToken from '../../../util/createToken.js';
 
 const router = express.Router();
 
-router.post('/signin', async (req, res) => {
+router.post('/', async (req, res) => {
     let { email, password } = req.body;
 
     email = email.trim();
