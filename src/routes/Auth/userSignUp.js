@@ -1,102 +1,79 @@
 import express from 'express';
-//mongodb user model
+import { registerUser } from '../../controller/SignUpAuthController.js';
+import UserOTPVerification from '../../model/UserOTPVerification.js';
 import User from '../../model/user.js';
-
-//password handler
 import bcrypt from 'bcryptjs';
-// JWT creator helper
-import createToken from '../../../util/createToken.js';
+
+
 const router = express.Router();
 
-router.post('/', async (req, res) => {
-    let { name, email, password, dateOfBirth} = req.body;
+router.post('/', registerUser);
 
-    name = name.trim();
-    email = email.trim();
-    password = password.trim();
-
-    // Validation
-    if (!name || !email || !password || !dateOfBirth) {
-        return res.json({
-            status: "FAILED",
-            message: "Empty input fields!"
-        });
-    }
-
-    if (!/^[a-zA-Z ]*$/.test(name)) {
-        return res.json({
-            status: "FAILED",
-            message: "Invalid name"
-        });
-    }
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        return res.json({
-            status: "FAILED",
-            message: "Invalid email entered"
-        });
-    }
-
-    if (isNaN(new Date(dateOfBirth).getTime())) {
-        return res.json({
-            status: "FAILED",
-            message: "Invalid date of birth entered"
-        });
-    }
-
-    if (password.length < 8) {
-        return res.json({
-            status: "FAILED",
-            message: "Password is too short!"
-        });
-    }
-
-    try {
-        let existingUser = await User.findOne({ email });
-
-        if (existingUser) {
-            return res.json({
-                status: "FAILED",
-                message: "Email already exists!"
+//Verify otp email
+router.post('/verifyOTP', async (req, res) => {
+    try{
+        let { userId, otp } = req.body;
+        if (!userId || !otp ) {
+            throw Error("otp details are not allowed");            
+        } else {
+            const UserOTPVerificationRecords = await UserOTPVerification.find({
+                userId,
             });
+            if (UserOTPVerificationRecords.length <= 0) {
+                throw new Error(
+                    "Accont record not verify, please sign up again"
+                );
+            } else {
+                // user otp record exixts
+                const { expiresAt } = UserOTPVerificationRecords[0];
+                const hashedOTP = UserOTPVerificationRecords[0].otp;
+
+                if (expiresAt  < Date.now()) {
+                    await UserOTPVerification.deleteMany({ userId});
+                    throw new error("Code has expired. Please request again");
+                } else {
+                    const vaildOTP = await bcrypt.compare(otp, hashedOTP);
+
+                    if(!vaildOTP) {
+                        throw new Error("invalid code passed")
+                    } else {
+                    await User.updateOne({ _id: userId}, {verifield: true});
+                    await UserOTPVerification.deleteMany({ userId });
+                    res.json({
+                        status: "VERIFIED",
+                        message: 'user email verified successfully'
+                    });
+                    }
+                }
+            }
         }
-
-        let saltRounds = 10;
-        let hashedPassword = await bcrypt.hash(password, saltRounds);
-
-        let newUser = new User({
-            name,
-            email,
-            password: hashedPassword,
-            role: 'attendee',  // Default role
-            dateOfBirth
-        });
-
-        let savedUser = await newUser.save();
-
-         //  Create a JWT token after successful signup
-         const token = await createToken({ userId: savedUser._id });
-
-        // Send the token and user data in response
-        return res.json({
-            status: "SUCCESS",
-            message: "Signup successful",
-            token, // sending the token
-            data: {
-                id: savedUser._id,
-                name: savedUser.name,
-                email: savedUser.email,
-                verified: savedUser.verified,
-                role: savedUser.role  // Include the role in the response
-             }
-         });
-    } catch (error) {
-        console.log(error);
-        return res.json({
+    } catch (error){
+        res.json({
             status: "FAILED",
-            message: "An error occurred while processing your request"
+            message: error.message
         });
     }
-});
-export default router;
 
+});
+
+router.post("/resendOTPVerificationCode",async (req, res) => {
+    try {
+        let {userId, email } = req.body;
+
+        if (!userId || !email) {
+            throw Error ("Empty user detail not allowed");
+        } else {
+            // delete existing record and resend
+            await UserOTPVerification.deleteMany({ userId });
+            UserOTPVerification({ _id: userId, email }, res);
+        }
+    }catch (error) {
+        res.json({
+            status: "FAILED",
+            message: error.massage,
+
+        })
+    }
+})
+
+export default router;
