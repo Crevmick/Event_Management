@@ -1,5 +1,5 @@
 import express from 'express';
-import { registerUser } from '../../controller/SignUpAuthController.js';
+import { registerUser, sendPasswordResetOTPEmail} from '../../controller/SignUpAuthController.js';
 import UserOTPVerification from '../../model/UserOTPVerification.js';
 import User from '../../model/user.js';
 import bcrypt from 'bcryptjs';
@@ -56,24 +56,46 @@ router.post('/verifyOTP', async (req, res) => {
 
 });
 
-router.post("/resendOTPVerificationCode",async (req, res) => {
+router.post("/resendOTPVerificationCode", async (req, res) => {
     try {
-        let {userId, email } = req.body;
-
-        if (!userId || !email) {
-            throw Error ("Empty user detail not allowed");
-        } else {
-            // delete existing record and resend
-            await UserOTPVerification.deleteMany({ userId });
-            UserOTPVerification({ _id: userId, email }, res);
-        }
-    }catch (error) {
-        res.json({
-            status: "FAILED",
-            message: error.massage,
-
-        })
+      let { userId, email } = req.body;
+  
+      if (!userId || !email) {
+        throw Error("Empty user detail not allowed");
+      }
+  
+      // delete existing OTP record
+      await UserOTPVerification.deleteMany({ userId });
+  
+      // resend new OTP
+      const response = await sendOTP({ email, userId });
+  
+      return res.json({
+        status: "SUCCESS",
+        message: "OTP resent successfully",
+        data: response.data,
+      });
+  
+    } catch (error) {
+      res.json({
+        status: "FAILED",
+        message: error.message,
+      });
     }
-})
+  });
+
+  router.post("/forget_password", async(req, res) => {
+    try {
+        const {email} = req.body;
+        if (!email) throw Error("An email is required");
+       const createdPasswordResetOTP = await sendPasswordResetOTPEmail(email); 
+       res.status(200).json(createdPasswordResetOTP)
+    } catch (error) {
+        res.status(400).send(error.message)
+    }
+
+    })
+
+
 
 export default router;
