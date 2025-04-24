@@ -11,19 +11,24 @@ const UserSchema = new Schema({
         type: String,
         unique: true,
         required: true,
-        lowercase: true, // Ensures email is saved in lowercase
+        lowercase: true,
     },
     password: {
         type: String,
-        required: true
+        required: function() {
+            return !this.googleId; // Password required only if googleId is not present
+        },
     },
     dateOfBirth: {
         type: Date,
-        required: true
+        required: function() {
+            // Make dateOfBirth required only for traditional sign-up, not Google sign-up
+            return !this.googleId;
+        },
     },
     verified: {
         type: Boolean,
-        default: false  // Assuming users are not verified by default
+        default: false
     },
     token: {
         type: String,
@@ -34,9 +39,15 @@ const UserSchema = new Schema({
         enum: ['admin', 'event-organizer', 'attendee'], 
         default: 'attendee' 
     },
-    eventsOrganized: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }]  // Refers to events the user organizes
+    eventsOrganized: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
+    
+    googleId: { 
+        type: String, 
+        unique: true, 
+        required: false  
+    }
 }, {
-    timestamps: true, // Automatically adds createdAt and updatedAt fields
+    timestamps: true, // Adds createdAt and updatedAt fields
 });
 
 const User = mongoose.model('User', UserSchema);

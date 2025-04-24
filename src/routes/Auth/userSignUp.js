@@ -3,6 +3,7 @@ import { registerUser, sendPasswordResetOTPEmail} from '../../controller/SignUpA
 import UserOTPVerification from '../../model/UserOTPVerification.js';
 import User from '../../model/user.js';
 import bcrypt from 'bcryptjs';
+import passport from '../../config/passportConfig.js'
 
 
 const router = express.Router();
@@ -97,5 +98,6 @@ router.post("/resendOTPVerificationCode", async (req, res) => {
     })
 
 
+    
 
 export default router;

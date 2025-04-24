@@ -7,6 +7,7 @@ import bcrypt from 'bcryptjs';
 // JWT creator helper
 import createToken from '../../../util/createToken.js';
 
+
 const router = express.Router();
 
 router.post('/', async (req, res) => {
