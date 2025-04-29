@@ -18,8 +18,9 @@ const app = express();
 
 
 app.use(express.json()); // for parsing JSON body
-app.use(morgan('tiny'));
-app.use(cors)
+app.use(morgan('dev'));
+app.use(cors())
+
 
 
 // Mount routes
@@ -35,7 +36,8 @@ app.use('/auth', authRouter); // This will handle /auth/google and /auth/google/
 
 
 //listen to our server
-const PORT = process.env.PORT
-app.listen (PORT,()=>{
-    console.log("Server connected..")
+const PORT = process.env.PORT;
+const HOST = process.env.HOST;
+app.listen (PORT, HOST,()=>{
+    console.log(`Server running at http://${HOST}:${PORT}/`);
 })

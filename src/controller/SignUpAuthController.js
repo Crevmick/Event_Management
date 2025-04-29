@@ -1,11 +1,10 @@
 import bcrypt from 'bcryptjs';
-import User from '../model/user.js';
+import User from  '../model/User.js';
 import createToken from '../../util/createToken.js';
 import sendOTP from '../../util/sendOTP.js';
 
 export const registerUser = async (req, res) => {
-  let { name, email, password, dateOfBirth } = req.body;
-
+  let { name, email, password, dateOfBirth, role, adminSecret } = req.body;
   name = name.trim();
   email = email.trim();
   password = password.trim();
@@ -40,11 +39,25 @@ export const registerUser = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Handle role safely
+    const allowedRoles = ['attendee', 'event-organizer', 'admin'];
+    role = role?.trim().toLowerCase() || 'attendee';
+
+    if (!allowedRoles.includes(role)) {
+      role = 'attendee'; // fallback if invalid role provided
+    }
+
+    if (role === 'admin') {
+      if (adminSecret !== process.env.ADMIN_SECRET) {
+        return res.json({ status: "FAILED", message: "Invalid admin secret key!" });
+      }
+    }
+
     const newUser = new User({
       name,
       email,
       password: hashedPassword,
-      role: 'attendee',
+      role,
       dateOfBirth,
       verified: false,
     });
@@ -57,8 +70,13 @@ export const registerUser = async (req, res) => {
       return res.json({ status: "FAILED", message: otpResponse.message });
     }
 
-    const token = await createToken({ userId: savedUser._id });
+    const token = await createToken({
+      _id: savedUser._id,
+      role: savedUser.role,
+    });
 
+    
+    
     return res.json({
       status: "SUCCESS",
       message: "Signup successful. OTP sent to email.",
@@ -74,13 +92,14 @@ export const registerUser = async (req, res) => {
     });
 
   } catch (error) {
-    console.log(error);
+    console.error("REGISTER ERROR:", error); // Better logging
     return res.json({
       status: "FAILED",
-      message: "An error occurred while processing your request",
+      message: error.message || "An error occurred while processing your request",
     });
   }
 };
+
 
 
 export const sendPasswordResetOTPEmail = async (email) => {

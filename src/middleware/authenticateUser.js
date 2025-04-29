@@ -7,8 +7,12 @@ const authenticateUser = (req, res, next) => {
     }
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded; // Attach user info to the request object
+        const decoded = jwt.verify(token, process.env.TOKEN_KEY);
+        req.user = {
+            userId: decoded.userId  || user._id,  
+            role: decoded.role, 
+          };
+      
         next();
     } catch (error) {
         res.status(401).json({ error: 'Invalid token' });

@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-
 const { Schema } = mongoose;
 
 const UserSchema = new Schema({
@@ -36,20 +35,20 @@ const UserSchema = new Schema({
     },
     role: { 
         type: String, 
-        enum: ['admin', 'event-organizer', 'attendee'], 
+        enum: ['admin', 'organizer', 'attendee'], 
         default: 'attendee' 
     },
     eventsOrganized: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
-    
     googleId: { 
         type: String, 
-        unique: true, 
+        unique: false, 
         required: false  
     }
 }, {
     timestamps: true, // Adds createdAt and updatedAt fields
 });
 
-const User = mongoose.model('User', UserSchema);
+// Check if the model already exists to prevent overwriting
+const User = mongoose.models.User || mongoose.model('User', UserSchema);
 
 export default User;

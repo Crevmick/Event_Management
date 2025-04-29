@@ -1,6 +1,6 @@
 import express from 'express';
 //mongodb user model
-import User from '../../model/user.js';
+import User from '../../model/User.js';
 
 //password handler
 import bcrypt from 'bcryptjs';
@@ -44,8 +44,8 @@ router.post('/', async (req, res) => {
         }
 
          //  Create a JWT token after successful login
-         const token = await createToken({ userId: user._id });
-
+         const token = await createToken({ userId: user._id, role: user.role });
+    
         // Success
         return res.json({
             status: "SUCCESS",
@@ -59,13 +59,13 @@ router.post('/', async (req, res) => {
             }
         });
 
-    } catch (err) {
-        console.error(err);
+    } catch (error) {
+        console.error("LOGIN ERROR:", error);  // 👈 important
         return res.json({
-            status: "FAILED",
-            message: "An error occurred while signing in"
+          status: "FAILED",
+          message: error.message || "An error occurred while signing in",
         });
-    }
+    } 
 });
 
 export default router;

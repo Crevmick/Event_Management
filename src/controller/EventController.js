@@ -1,8 +1,14 @@
 import Event from '../model/event.js';
+import mongoose from 'mongoose';  // Import mongoose
 
 export const getAllEvents = async (req, res) => {
+    
     try {
-        const events = await Event.find();
+        const events = await Event.find()
+            .select('title date location') // Only fetch necessary fields
+            .limit(20) // Limit the number of events to 20
+            .lean(); // Improve query speed
+
         res.status(200).json(events);
     } catch (error) {
         console.log(error.message);
@@ -11,9 +17,11 @@ export const getAllEvents = async (req, res) => {
 }
 
 export const createEvent = async (req, res) => {
+//    // Temporary mock for testing - REMOVE after authentication is fixed
+//    req.user = { userId: new mongoose.Types.ObjectId(), role: 'admin' };  // Use 'new' here
     try {
         const { title, date, location, description } = req.body;
-        const userId = req.user.id; 
+        const userId = req.user.userId;  
 
         if (!title || !date || !location) {
             return res.status(400).json({ error: 'Missing required fields' });
@@ -24,7 +32,7 @@ export const createEvent = async (req, res) => {
             date,
             location,
             description,
-            createdBy: userId, // Add the user ID to the event
+            createdBy: userId,  // Add the user ID to the event
         });
 
         await newEvent.save();
@@ -40,7 +48,10 @@ export const getEvent = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const event = await Event.findById(id);
+        const event = await Event.findById(id)
+            .select('title date location description') // Only select needed fields
+            .lean();
+
         if (!event) {
             return res.status(404).json({ error: 'Event not found' });
         }
@@ -52,30 +63,38 @@ export const getEvent = async (req, res) => {
     }
 }
 
+
 export const updateEvent = async (req, res) => {
     try {
         const { id } = req.params;
         const { title, date, location, description } = req.body;
-        const userId = req.user.id; // Get the authenticated user's ID from req.user
+        const userId = req.user.userId; // Get the authenticated user's ID from req.user
 
-        // Find and update the event
-        const event = await Event.findByIdAndUpdate(id, {
-            title,
-            date,
-            location,
-            description,
-        }, { new: true });
+        // First, find the event without updating
+        const event = await Event.findById(id);
 
         if (!event) {
             return res.status(404).json({ error: 'Event not found' });
         }
 
-        // Check if the authenticated user is the one who created the event
-        if (event.createdBy.toString() !== userId) {
+        // Convert both createdBy and userId to strings to ensure correct comparison
+        const eventCreatorId = event.createdBy.toString(); 
+        const authenticatedUserId = userId.toString(); 
+
+        // Check if the authenticated user is the owner
+        if (eventCreatorId !== authenticatedUserId) {
             return res.status(403).json({ message: "You do not have permission to update this event" });
         }
 
-        res.status(200).json(event);
+        // Proceed with update after permission is verified
+        event.title = title;
+        event.date = date;
+        event.location = location;
+        event.description = description;
+
+        const updatedEvent = await event.save();
+
+        res.status(200).json(updatedEvent);
 
     } catch (error) {
         console.log(error.message);
