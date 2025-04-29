@@ -1,40 +1,20 @@
 import jwt from 'jsonwebtoken';
 
-const { TOKEN_KEY } = process.env;
+const { TOKEN_KEY, TOKEN_EXPIRY } = process.env;
 
-const authenticateUser = (req, res, next) => {
-    const token = req.header('Authorization')?.replace('Bearer ', ''); // Extract token from header
+const createToken = async (user, tokenKey = TOKEN_KEY, expiresIn = TOKEN_EXPIRY) => {
+  try {
+    const tokenData = {
+       userId: user._id,
+       role: user.role, 
+    };
 
-    if (!token) {
-        return res.status(401).json({ error: 'Authentication required' });
-    }
-
-    try {
-        const decoded = jwt.verify(token, TOKEN_KEY);  // Verify the token
-        
-        // Get the current time (in seconds)
-        const currentTime = Math.floor(Date.now() / 1000);
-        console.log("Current time:", currentTime);
-        
-        // Compare current time with token expiration time
-        if (decoded.exp < currentTime) {
-            return res.status(401).json({ error: 'Token has expired' });
-        }
-
-        console.log("Decoded token:", decoded);  // Log decoded token for debugging
-
-        req.user = {
-            userId: decoded.userId,
-            role: decoded.role,
-        };
-
-        next();  // Proceed to the next middleware or route handler
-    } catch (error) {
-        console.error("Token verification error:", error);  // Log any errors
-        return res.status(401).json({ error: 'Invalid token' });
-    }
+    // Generate the token with the user data and expiry
+    const token = jwt.sign(tokenData, tokenKey, { expiresIn });
+    return token;
+  } catch (error) {
+    throw error;
+  }
 };
 
-export default authenticateUser;
-
-
+export default createToken;

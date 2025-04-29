@@ -8,6 +8,7 @@ import signupRoute from './routes/Auth/userSignUp.js';
 import signinRoute from './routes/Auth/userSignIn.js';
 import authRouter from './routes/Auth/authRouter.js';  // Import authRouter for Google login
 import eventRoute from './routes/Event/event.js';
+import EventRegistration from './routes/Event/EventRegistration.js'; 
 
 dotenv.config();
 
@@ -27,12 +28,16 @@ app.use(cors())
 app.use('/api/auth/signup', signupRoute);
 app.use('/api/auth/signin', signinRoute);
 app.use('/api/events', eventRoute);
-
-
+app.use('/api/events', EventRegistration);
 
 // Mount routes for Google authentication
 app.use('/auth', authRouter); // This will handle /auth/google and /auth/google/callback
 
+
+// Default route for testing
+app.get('/', (req, res) => {
+    res.send('Welcome to the Event Registration API!');
+});
 
 
 //listen to our server
