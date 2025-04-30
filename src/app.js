@@ -40,13 +40,18 @@ app.use('/auth', authRouter); // This will handle /auth/google and /auth/google/
 
 // Default route for testing
 app.get('/', (req, res) => {
-    res.send('Welcome to the Event Registration API!');
+    res.send(200).json({
+        status: 'sucess',
+        message: 'Welcome to the Event Registration API!',
+        documentation: 'https://documenter.getpostman.com/view/43171328/2sB2j3CsSm'
+
+    })
 });
 
 
 //listen to our server
-const PORT = process.env.PORT;
-const HOST = process.env.HOST;
+const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || '0.0.0.0';
 app.listen (PORT, HOST,()=>{
     console.log(`Server running at http://${HOST}:${PORT}/`);
 })

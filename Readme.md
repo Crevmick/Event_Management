@@ -86,27 +86,32 @@ A scalable and secure RESTful API for managing events, users, categories, and ev
 ---
 
 ## 📦 Folder Structure
-<pre><code>``` src/ ├── config/ # DB connection, passport strategies ├── controller/ # Business logic for routes ├── middleware/ # JWT auth, request validation, error handlers ├── model/ # Mongoose schemas and models ├── route/ # All route handlers │ ├── auth/ # Auth routes (signup, login, Google) │ ├── category/ # Category CRUD routes │ ├── event/ # Event CRUD routes │ └── registerEvent/ # Event registration routes ├── util/ # Helper functions (e.g., OTP generator) ├── app.js # Main Express app └── app.js # Server startup ```</code></pre>
----
-
-## 📦 Installation & Setup
 
 ```bash
-git clone https://github.com/yourusername/event-management-backend.git
-cd event-management-backend
-npm install
+src/
+├── config/             # DB connection, passport strategies
+├── controller/         # Business logic for routes
+├── middleware/         # JWT auth, request validation, error handlers
+├── model/              # Mongoose schemas and models
+├── route/              # All route handlers
+│   ├── auth/           # Auth routes (signup, login, Google)
+│   ├── category/       # Category CRUD routes
+│   ├── event/          # Event CRUD routes
+│   └── registerEvent/  # Event registration routes
+├── util/               # Helper functions (e.g., OTP generator)
+├── app.js              # Main Express app
+└── server.js           # Server startup
+```
+---
 
-## Created By
+## 👨‍💻 Created By
 
 **Crevmick**  
 [GitHub: @crevmick](https://github.com/crevmick)
 
-## License
+---
 
-This project is licensed under the MIT License.  
-See the [LICENSE](./LICENSE) file for details.
-
-## Live Demo
+## 🌐 Live Demo
 
 Check out the live version of this project:  
 👉 [Event Management App](https://event-management-ltpz.onrender.com)
