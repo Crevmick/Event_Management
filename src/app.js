@@ -72,7 +72,7 @@ app.get('/', (req, res) => {
           </style>
         </head>
         <body>
-          <h1>Welcome to the Event Registration API!</h1>
+          <h1>Welcome to the Event Management API!</h1>
           <p>Status: <span style="color: green;">Success</span></p>
           <p>To view the API documentation, click below:</p>
           <p><a href="https://documenter.getpostman.com/view/43171328/2sB2j3CsSm" target="_blank">View API Documentation</a></p>
