@@ -1,5 +1,12 @@
 import express from 'express';
-import { registerUser, sendPasswordResetOTPEmail } from '../../controller/SignUpAuthController.js';
+import { 
+  registerUser, 
+  registerUserValidationRules,
+  sendPasswordResetOTPEmail,
+  sendPasswordResetOTPEmailValidationRules,
+  resetPassword,
+  resetPasswordValidationRules
+} from '../../controller/SignUpAuthController.js';
 import UserOTPVerification from '../../model/UserOTPVerification.js';
 import User from '../../model/User.js';
 import bcrypt from 'bcryptjs';
@@ -9,9 +16,10 @@ import sendOTP from '../../../util/sendOTP.js';
 const router = express.Router();
 
 // Register route
-router.post('/', registerUser);
+router.post('/', registerUserValidationRules(), registerUser);
 
 // Verify OTP route
+// TODO: Add express-validator rules for userId and otp
 router.post('/verifyOTP', async (req, res) => {
   try {
     let { userId, otp } = req.body;
@@ -91,17 +99,10 @@ router.post("/resendOTPVerificationCode", async (req, res) => {
   }
 });
 
-// Forgot password route
-router.post("/forget_password", async (req, res) => {
-  try {
-    const { email } = req.body;
-    if (!email) throw new Error("An email is required");
+// Forgot password route (sends password reset OTP)
+router.post("/forget_password", sendPasswordResetOTPEmailValidationRules(), sendPasswordResetOTPEmail);
 
-    const createdPasswordResetOTP = await sendPasswordResetOTPEmail(email);
-    res.status(200).json(createdPasswordResetOTP);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-});
+// Reset password route
+router.post('/reset-password', resetPasswordValidationRules(), resetPassword);
 
 export default router;

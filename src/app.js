@@ -3,6 +3,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import morgan from 'morgan';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import connectDB from './config/db.js';
 import signupRoute from './routes/Auth/userSignUp.js';
 import signinRoute from './routes/Auth/userSignIn.js';
@@ -22,7 +23,8 @@ const app = express();
 
 app.use(express.json()); // for parsing JSON body
 app.use(morgan('dev'));
-app.use(cors())
+app.use(cors());
+app.use(cookieParser()); // Initialize cookie-parser
 
 
 
