@@ -47,4 +47,39 @@ const sendOTP = async ({ _id, email }) => {
   }
 };
 
+export const verifyOTP = async ({ userId, otp }) => {
+  try {
+    if (!userId || !otp) {
+      throw Error("User ID and OTP are required.");
+    }
+
+    const userOTPRecord = await UserOTPVerification.findOne({ userId });
+
+    if (!userOTPRecord) {
+      throw Error("OTP record not found. It might have expired or already been used.");
+    }
+
+    const { expiresAt, otp: hashedOTP } = userOTPRecord;
+
+    if (expiresAt < Date.now()) {
+      // OTP has expired
+      await UserOTPVerification.deleteOne({ userId }); // Delete expired OTP
+      throw Error("OTP has expired. Please request a new one.");
+    }
+
+    const isValidOTP = await bcrypt.compare(otp, hashedOTP);
+
+    if (!isValidOTP) {
+      throw Error("Invalid OTP entered.");
+    }
+
+    // OTP is valid, delete it to prevent reuse
+    await UserOTPVerification.deleteOne({ userId });
+    return { success: true, message: "OTP verified successfully." };
+
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+};
+
 export default sendOTP;
